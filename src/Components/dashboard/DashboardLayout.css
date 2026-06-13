@@ -1,0 +1,79 @@
+/* newly added */
+
+.dashboard-shell {
+  /* Codex change: shell owns viewport height so header/sidebar stay stable while content scrolls. */
+
+  display: flex;
+
+  height: 100vh;
+
+  background: #f5f7fb;
+
+  overflow: hidden;
+}
+
+.dashboard-main {
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+
+  height: 100vh;
+
+  overflow: hidden;
+}
+
+.dashboard-content {
+
+  padding: 24px;
+
+  flex: 1;
+
+  min-width: 0;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+}
+
+@media screen and (max-width: 768px) {
+
+  .dashboard-shell {
+
+    flex-direction: column;
+
+    height: auto;
+
+    min-height: 100vh;
+
+    overflow: visible;
+  }
+
+  .dashboard-main {
+
+    height: auto;
+
+    min-height: 0;
+
+    overflow: visible;
+  }
+
+  .dashboard-content {
+
+    padding: 16px;
+
+    overflow: visible;
+  }
+}
+
+@media screen and (max-width: 520px) {
+
+  .dashboard-content {
+
+    padding: 12px;
+  }
+}

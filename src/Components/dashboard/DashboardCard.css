@@ -1,0 +1,54 @@
+
+/* newly added */
+
+.dashboard-widget-card {
+
+  background: white;
+
+  border-radius: 8px;
+
+  padding: 20px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0,0,0,0.06);
+
+  height: 100%;
+
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+.dashboard-widget-header {
+
+  margin-bottom: 16px;
+}
+
+.dashboard-widget-header h3 {
+
+  margin: 0;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  line-height: 1.25;
+}
+
+.dashboard-widget-body {
+
+  min-height: 180px;
+}
+
+
+@media screen and (max-width: 640px) {
+
+  .dashboard-widget-card {
+    padding: 16px;
+  }
+
+  .dashboard-widget-body {
+    min-height: 140px;
+  }
+}
