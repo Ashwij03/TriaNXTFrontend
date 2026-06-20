@@ -448,12 +448,16 @@ function DashboardSidebar({ onNavigate }) {
 
   return (
     <div
-      className="enterprise-sidebar"
-      style={{
-        width: sidebarWidth,
-        minWidth: sidebarWidth,
-        flexBasis: sidebarWidth
-      }}
+      className={sidebarClassName}
+      style={
+        collapsed || compact
+          ? undefined
+          : {
+              width: sidebarWidth,
+              minWidth: sidebarWidth,
+              flexBasis: sidebarWidth
+            }
+      }
     >
       <TriaNXTLogo size="sidebar" onClick={() => handleNav(dashboardPath)} />
 

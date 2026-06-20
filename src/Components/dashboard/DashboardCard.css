@@ -1,22 +1,11 @@
-
-/* newly added */
-
 .dashboard-widget-card {
-
-  background: white;
-
-  border-radius: 8px;
-
+  background: var(--tnxt-card);
+  border: 1px solid var(--tnxt-border-light);
+  border-radius: var(--tnxt-radius-lg);
   padding: 20px;
-
-  box-shadow:
-    0 3px 12px
-    rgba(0,0,0,0.06);
-
+  box-shadow: var(--tnxt-shadow-card);
   height: 100%;
-
   min-width: 0;
-
   overflow: hidden;
 
   display: flex;
@@ -25,22 +14,23 @@
 }
 
 .dashboard-widget-header {
-
   margin-bottom: 16px;
 }
 
 .dashboard-widget-header h3 {
-
   margin: 0;
-
   font-size: 16px;
-
   font-weight: 600;
-
   line-height: 1.25;
+  color: var(--tnxt-text);
 }
 
 .dashboard-widget-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 
   flex: 1;
 
@@ -62,9 +52,14 @@
   min-width: 0;
 }
 
+.upcoming-visits-full-width .dashboard-widget-body > .upcoming-visits-table {
+  align-self: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
 
 @media screen and (max-width: 640px) {
-
   .dashboard-widget-card {
     padding: 16px;
   }

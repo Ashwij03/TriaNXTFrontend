@@ -203,8 +203,9 @@
   min-width: max-content;
 }
 
-.header-menu span {
+.header-action-btn {
   align-items: center;
+  border-radius: var(--tnxt-radius-md);
   cursor: pointer;
   display: flex;
   font-size: calc(11px * var(--dashboard-ui-scale, 0.6) + 1px);
@@ -218,8 +219,68 @@
   font-size: calc(14px * var(--dashboard-ui-scale, 0.6) + 1px);
 }
 
-.header-menu span:hover {
-  color: #2563eb;
+.header-icon-btn {
+  align-items: center;
+  background: var(--tnxt-bg-alt);
+  border: 1px solid var(--tnxt-border);
+  border-radius: var(--tnxt-radius-md);
+  color: var(--tnxt-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  min-width: 36px;
+  padding: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.header-icon-btn:hover {
+  background: var(--tnxt-primary-light);
+  color: var(--tnxt-primary);
+}
+
+.header-icon-btn svg {
+  font-size: 18px;
+}
+
+.header-quick-actions-wrap {
+  position: relative;
+}
+
+.header-quick-actions-menu {
+  background: var(--tnxt-card);
+  border: 1px solid var(--tnxt-border);
+  border-radius: var(--tnxt-radius-lg);
+  box-shadow: var(--tnxt-shadow-lg);
+  min-width: 180px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 1400;
+}
+
+.header-quick-actions-menu button {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--tnxt-border-light);
+  color: var(--tnxt-text);
+  cursor: pointer;
+  display: block;
+  font-size: var(--tnxt-font-size-sm);
+  font-weight: 500;
+  padding: 10px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.header-quick-actions-menu button:last-child {
+  border-bottom: none;
+}
+
+.header-quick-actions-menu button:hover {
+  background: var(--tnxt-bg-alt);
+  color: var(--tnxt-primary);
 }
 
 .notification-badge {
@@ -229,7 +290,7 @@
 
 .notification-badge small {
   align-items: center;
-  background: #ef4444;
+  background: var(--tnxt-danger);
   border-radius: 50%;
   color: white;
   display: flex;
@@ -258,7 +319,7 @@
 
 .profile-avatar {
   align-items: center;
-  background: #2563eb;
+  background: var(--tnxt-primary);
   border-radius: 50%;
   color: white;
   display: flex;
@@ -316,7 +377,7 @@
 }
 
 .profile-dropdown div:hover {
-  background: #f3f4f6;
+  background: var(--tnxt-bg-alt);
 }
 
 .header-filter-toggle {
