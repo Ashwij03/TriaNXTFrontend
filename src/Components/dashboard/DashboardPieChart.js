@@ -29,7 +29,9 @@ function DashboardPieChart({
     "#2563eb",
     "#10b981",
     "#f59e0b",
-    "#ef4444"
+    "#8b5cf6",
+    "#ef4444",
+    "#64748b"
   ];
 
   return (

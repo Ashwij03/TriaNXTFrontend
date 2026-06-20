@@ -9,12 +9,13 @@ function DataTable({
   title,
   columns = [],
   data = [],
-  emptyMessage = "No records found"
+  emptyMessage = "No records found",
+  className = ""
 }) {
 
   return (
 
-    <div className="ctms-table-card">
+    <div className={`ctms-table-card${className ? ` ${className}` : ""}`}>
 
       <div className="ctms-table-header">
 
@@ -32,7 +33,10 @@ function DataTable({
 
               {columns.map((column) => (
 
-                <th key={column.key}>
+                <th
+                  key={column.key}
+                  style={column.width ? { width: column.width } : undefined}
+                >
                   {column.label}
                 </th>
 
@@ -57,11 +61,9 @@ function DataTable({
                         column.key
                       }
                     >
-                      {
-                        row[
-                          column.key
-                        ]
-                      }
+                      {typeof column.render === "function"
+                        ? column.render(row[column.key], row)
+                        : row[column.key]}
                     </td>
 
                   ))}
@@ -81,7 +83,7 @@ function DataTable({
                   className="empty-row"
                 >
 
-                  {emptyMessage}
+                  <div className="empty-row-inner">{emptyMessage}</div>
 
                 </td>
 

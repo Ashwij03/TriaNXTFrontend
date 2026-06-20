@@ -45,7 +45,7 @@ export default function DeleteConfirmationModal({
     <div className="delete-modal-overlay">
       <div className="delete-modal-box">
         <div className="delete-modal-header">
-          <h2>⚠️ {title}</h2>
+          <h2>{title}</h2>
           <button
             type="button"
             className="delete-modal-close"

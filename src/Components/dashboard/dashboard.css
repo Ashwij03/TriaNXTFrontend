@@ -9,6 +9,7 @@
   --card-bg: #ffffff;
   --text: #1f2937;
   --border: #e5e7eb;
+  --dashboard-ui-scale: 0.82;
 }
 
 .dashboard-page {
@@ -20,7 +21,7 @@
 
 .dashboard-section {
 
-  margin-bottom: 24px;
+  margin-bottom: calc(24px * var(--dashboard-ui-scale, 1));
 }
 
 .dashboard-grid-6 {
@@ -91,12 +92,20 @@
 }
 
 .visit-item,
-.query-item {
+.comment-item,
+.comment-item,
+.comment-item {
   padding: 12px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   margin-bottom: 12px;
   background: #f8fafc;
+}
+
+.visit-item-empty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .quick-grid {

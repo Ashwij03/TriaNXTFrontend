@@ -5,9 +5,15 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import { initializeAdminData } from "./services/adminService";
+import { initializeStudies } from "./services/studyService";
 
 // Friend imports
 import { CommentsProvider } from "./CommentsContext";
+
+// UPDATED: seed admin and studies localStorage data on app startup
+initializeAdminData();
+initializeStudies();
 
 const root = ReactDOM.createRoot(
   document.getElementById("root")
