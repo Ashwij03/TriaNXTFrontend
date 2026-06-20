@@ -1,6 +1,3 @@
-
-/* newly added */
-
 .ctms-table-card {
 
   background: #ffffff;
@@ -14,9 +11,7 @@
     rgba(0,0,0,0.06);
 
   width: 100%;
-
   min-width: 0;
-
   max-width: 100%;
 
   min-height: calc(200px * var(--dashboard-ui-scale, 0.6));
@@ -27,29 +22,20 @@
 }
 
 .ctms-table-header {
-
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
-  margin-bottom: 16px;
+  margin-bottom: var(--tnxt-space-lg);
 }
 
 .ctms-table-header h3 {
-
   margin: 0;
-
-  font-size: 18px;
-
+  font-size: var(--tnxt-font-size-xl);
   font-weight: 600;
-
-  color: #1f2937;
+  color: var(--tnxt-text);
 }
 
 .ctms-table-wrapper {
-
   width: 100%;
 
   flex: 1;
@@ -69,8 +55,7 @@
 }
 
 .ctms-table thead {
-
-  background: #f3f6fb;
+  background: var(--tnxt-bg-alt);
 }
 
 .ctms-table th {
@@ -84,18 +69,16 @@
   color: #4b5563;
 
   font-weight: 600;
-
-  border-bottom:
-    1px solid #e5e7eb;
+  border-bottom: 1px solid var(--tnxt-border);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 11px;
 }
 
 .ctms-table th,
 .ctms-table td {
-
   white-space: nowrap;
-
   word-break: normal;
-
   overflow-wrap: normal;
 }
 
@@ -112,17 +95,25 @@
 }
 
 .ctms-table tbody tr:hover {
+  background: var(--tnxt-bg-alt);
+}
 
-  background: #f9fafb;
+.ctms-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .empty-row {
-
   text-align: center;
-
   padding: 30px;
+  color: var(--tnxt-text-secondary);
+}
 
-  color: #6b7280;
+.empty-row-inner {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-height: 200px;
 }
 
 .empty-row-inner {
@@ -193,8 +184,27 @@
 
 @media screen and (max-width: 768px) {
 
-  .ctms-table-card {
+.upcoming-visits-table .ctms-table th,
+.upcoming-visits-table .ctms-table td {
+  height: auto;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 
+.upcoming-visits-table .ctms-table th:nth-child(2),
+.upcoming-visits-table .ctms-table td:nth-child(2) {
+  max-width: 140px;
+  width: 18%;
+}
+
+.upcoming-visits-table .ctms-table th:nth-child(6),
+.upcoming-visits-table .ctms-table td:nth-child(6) {
+  min-width: 72px;
+  width: 14%;
+}
+
+@media screen and (max-width: 768px) {
+  .ctms-table-card {
     padding: 14px;
 
     min-height: 220px;
@@ -202,9 +212,7 @@
 
   .ctms-table th,
   .ctms-table td {
-
     padding: 10px;
-
     font-size: 12px;
   }
 

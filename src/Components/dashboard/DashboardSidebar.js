@@ -51,7 +51,7 @@ const STUDY_SECTIONS = [
   { key: "logs", label: "Logs" }
 ];
 
-function DashboardSidebar({ onNavigate }) {
+function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
@@ -158,6 +158,12 @@ function DashboardSidebar({ onNavigate }) {
   const isCommentsRoute =
     pathname.includes("/comments") || pathname === "/comments";
 
+  const sidebarClassName = [
+    "enterprise-sidebar",
+    collapsed || compact ? "is-collapsed" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
   const isStudiesActive =
     isStudiesOverviewRoute || isStudyInternalRoute || isCommentsRoute;
 
@@ -448,12 +454,16 @@ function DashboardSidebar({ onNavigate }) {
 
   return (
     <div
-      className="enterprise-sidebar"
-      style={{
-        width: sidebarWidth,
-        minWidth: sidebarWidth,
-        flexBasis: sidebarWidth
-      }}
+      className={sidebarClassName}
+      style={
+        collapsed || compact
+          ? undefined
+          : {
+              width: sidebarWidth,
+              minWidth: sidebarWidth,
+              flexBasis: sidebarWidth
+            }
+      }
     >
       <TriaNXTLogo size="sidebar" onClick={() => handleNav(dashboardPath)} />
 

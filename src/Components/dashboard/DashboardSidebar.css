@@ -3,8 +3,8 @@
   --sidebar-tree-indent: 18px;
   --sidebar-expander-gap: 12px;
   height: 100vh;
-  background: #082c3c;
-  color: #d8e4ea;
+  background: var(--tnxt-sidebar-gradient);
+  color: var(--tnxt-sidebar-text);
   padding: 18px 14px;
   box-sizing: border-box;
   overflow-y: hidden;
@@ -20,12 +20,12 @@
 }
 
 .enterprise-sidebar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .enterprise-sidebar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
+  border-radius: var(--tnxt-radius-full);
 }
 
 .enterprise-sidebar::-webkit-scrollbar-track {
@@ -230,15 +230,12 @@
 .submenu-parent,
 .submenu-item {
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .sidebar-link {
   align-items: center;
-  border-radius: 8px;
+  border-radius: var(--tnxt-radius-md);
   display: flex;
   gap: 10px;
   margin-bottom: 6px;
@@ -248,15 +245,15 @@
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--tnxt-text-inverse);
   transform: translateX(2px);
 }
 
 .sidebar-link.active {
-  background: #0d6efd;
-  color: #ffffff;
-  box-shadow: 0 8px 18px rgba(13, 110, 253, 0.25);
+  background: var(--tnxt-primary);
+  color: var(--tnxt-text-inverse);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
 .sidebar-submenu {
