@@ -20,9 +20,15 @@ function CalendarWidget({
 
   const [internalSelectedDate, setInternalSelectedDate] =
     useState(
-      selectedDate ||
+      selectedDate ??
       new Date().toISOString().split("T")[0]
     );
+
+  const isControlled = typeof onDateSelect === "function";
+
+  const activeDate = isControlled
+    ? selectedDate
+    : selectedDate || internalSelectedDate;
 
   const weekDays = [
     "Sun",
@@ -49,9 +55,6 @@ function CalendarWidget({
     "December",
   ];
 
-  const activeDate =
-    selectedDate || internalSelectedDate;
-
   const daysInMonth = new Date(
     currentYear,
     currentMonth + 1,
@@ -72,10 +75,15 @@ function CalendarWidget({
     }
   };
 
-  const getSchedulesForDate = (date) =>
-    schedules.filter(
-      (schedule) => schedule.date === date
+  const getSchedulesForDate = (date) => {
+    if (!date) {
+      return [];
+    }
+
+    return schedules.filter(
+      (schedule) => String(schedule.date || "").slice(0, 10) === date
     );
+  };
 
   const changeMonth = (direction) => {
     if (direction === "prev") {
@@ -227,12 +235,16 @@ function CalendarWidget({
           </div>
 
           <strong>
-            {activeDate}
+            {activeDate || "Select a date"}
           </strong>
 
         </div>
 
-        {selectedSchedules.length > 0 ? (
+        {!activeDate ? (
+          <div className="calendar-empty">
+            Select a date to view schedule details
+          </div>
+        ) : selectedSchedules.length > 0 ? (
 
           selectedSchedules.map(
             (schedule, index) => (
@@ -285,7 +297,7 @@ function CalendarWidget({
 
         ) : (
           <div className="calendar-empty">
-            No schedules available
+            No schedules on this date
           </div>
         )}
 

@@ -171,6 +171,9 @@ function Register() {
 
       role,
 
+      // UPDATED: persist assigned site for site-scoped RBAC
+      assignedSite: orgType,
+
       approvalStatus:
         role === "Admin"
           ? "Approved"

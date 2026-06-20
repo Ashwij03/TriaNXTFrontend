@@ -39,7 +39,9 @@ function AlertsPanel({
 
                   {alert.type === "danger" && "🚨"}
 
-                  {alert.type === "warning" && "⚠️"}
+                  {alert.type === "warning" && (
+                    <span className="alert-dot alert-dot--warning" aria-hidden="true" />
+                  )}
 
                   {alert.type === "success" && "✅"}
 

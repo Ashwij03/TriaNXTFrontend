@@ -18,6 +18,10 @@
   min-width: 0;
 
   overflow: hidden;
+
+  display: flex;
+
+  flex-direction: column;
 }
 
 .dashboard-widget-header {
@@ -38,7 +42,24 @@
 
 .dashboard-widget-body {
 
-  min-height: 180px;
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-height: 0;
+}
+
+.dashboard-widget-body > * {
+  flex: 1;
+}
+
+.upcoming-visits-full-width .dashboard-widget-body > .upcoming-visits-table {
+  align-self: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
 }
 
 

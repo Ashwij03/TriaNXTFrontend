@@ -1,61 +1,244 @@
 import "./DashboardSidebar.css";
+import TriaNXTLogo from "../common/TriaNXTLogo";
+import { getStudies } from "../../services/studyService";
+import {
+  getCurrentUser,
+  getDashboardPath,
+  getEffectiveRole,
+  getEffectiveUser,
+  getSidebarMenuItems
+} from "../../services/roleService";
+import { ADMIN_PREVIEW_ROLE_EVENT } from "../../constants/headerFilters";
+import {
+  FOLDER_TREE_EVENT,
+  getFirstLevelFolders,
+  getFolderTree
+} from "../../services/folderService";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  useNavigate,
-  useLocation
-} from "react-router-dom";
-import {
-  FiBarChart2,
   FiBell,
   FiClipboard,
-  FiFileText,
   FiFolder,
   FiGrid,
+  FiMessageSquare,
   FiSettings,
+  FiShield,
   FiTrendingUp,
-  FiUsers
+  FiUsers,
+  FiEye
 } from "react-icons/fi";
 
-function DashboardSidebar() {
+const SIDEBAR_EXPANDED_STUDIES_KEY = "sidebarExpandedStudies";
+const SIDEBAR_EXPANDED_SECTIONS_KEY = "sidebarExpandedStudySections";
+const SIDEBAR_STUDY_BINDER_OPEN_KEY = "sidebarStudyBinderOpen";
+
+function readStoredJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const STUDY_SECTIONS = [
+  { key: "overview", label: "Overview" },
+  { key: "subjects", label: "Subjects", expandable: true },
+  { key: "regulatory", label: "Regulatory" },
+  { key: "reports", label: "Reports" },
+  { key: "studyFolder", label: "Study Folder", expandable: true },
+  { key: "logs", label: "Logs" }
+];
+
+function DashboardSidebar({ onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const resizingRef = useRef(false);
+  const prevActiveStudyKeyRef = useRef(null);
 
-  const currentUser =
-    JSON.parse(
-      localStorage.getItem(
-        "currentUser"
-      )
+  const currentUser = getCurrentUser();
+  const [effectiveRole, setEffectiveRole] = useState(() =>
+    getEffectiveRole(currentUser)
+  );
+  const effectiveUser = getEffectiveUser(currentUser);
+
+  const getStudiesSafe = () => {
+    try {
+      const studies = getStudies();
+      return Array.isArray(studies) ? studies : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const getAllSubjectsByStudy = () => {
+    try {
+      return JSON.parse(localStorage.getItem("subjectsByStudy")) || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const getStudyKey = (study) =>
+    String(
+      study?.code ??
+        study?.id ??
+        study?.studyId ??
+        study?.title ??
+        study?.name
     );
 
-  const [Study_BinderOpen, setStudy_BinderOpen] =
-    useState(true);
-  const [studiesOpen, setStudiesOpen] =
-    useState(false);
-  const [eisfOpen, setEisfOpen] =
-    useState(false);
-  const [icfOpen, setIcfOpen] =
-    useState(false);
-  const [studyFolderOpen, setStudyFolderOpen] =
-    useState(false);
-  
-  const [expandedSubjects, setExpandedSubjects] = useState({});
+  const getStudyDisplayName = (study) =>
+    study?.name ||
+    study?.title ||
+    study?.studyName ||
+    study?.protocolTitle ||
+    study?.protocol ||
+    "Untitled Study";
 
-  const [subjectsOpen, setSubjectsOpen] = useState(false);
+  const getStudyMeta = (study) => {
+    const code = study?.code || study?.id || study?.studyId;
 
-  // Codex change: user can resize the enterprise sidebar; width is persisted for future sessions.
-  const [sidebarWidth, setSidebarWidth] =
-    useState(() => {
-      const storedWidth =
-        Number(
-          localStorage.getItem(
-            "dashboardSidebarWidth"
-          )
-        );
+    if (!code) {
+      return "";
+    }
 
-      return storedWidth || 260;
-    });
+    const name = getStudyDisplayName(study);
+
+    if (name && code !== name) {
+      return code;
+    }
+
+    return "";
+  };
+
+  const getStudySubjects = (study) => {
+    const subjectsByStudy = getAllSubjectsByStudy();
+    const studyKey = getStudyKey(study);
+    const subjects = subjectsByStudy[studyKey];
+    return Array.isArray(subjects) ? subjects : [];
+  };
+
+  const [studyBinderOpen, setStudyBinderOpen] = useState(() =>
+    readStoredJson(SIDEBAR_STUDY_BINDER_OPEN_KEY, false)
+  );
+  const [studiesOpen, setStudiesOpen] = useState(false);
+  const [expandedStudies, setExpandedStudies] = useState(() =>
+    readStoredJson(SIDEBAR_EXPANDED_STUDIES_KEY, {})
+  );
+  const [expandedStudySections, setExpandedStudySections] = useState(() =>
+    readStoredJson(SIDEBAR_EXPANDED_SECTIONS_KEY, {})
+  );
+  const [folderTreeVersion, setFolderTreeVersion] = useState(0);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const storedWidth = Number(localStorage.getItem("dashboardSidebarWidth"));
+    return storedWidth >= 220 ? storedWidth : 260;
+  });
+
+  const studies = getStudiesSafe();
+  const studyCount = studies.length;
+  const sidebarItems = getSidebarMenuItems(currentUser);
+  const canManageUsers =
+    effectiveUser?.role === "Admin" || effectiveUser?.role === "SiteStaff";
+  const canApprovePermissions =
+    effectiveUser?.role === "Admin" || effectiveUser?.role === "SiteStaff";
+  const canViewCROOverview =
+    effectiveUser?.role === "Admin" ||
+    effectiveUser?.role === "SiteStaff" ||
+    effectiveUser?.role === "CRO";
+  const canRequestAccess =
+    effectiveUser?.role === "CRO" || effectiveUser?.role === "Sponsor";
+
+  const isStudiesOverviewRoute = pathname === "/studies";
+  const isStudyInternalRoute =
+    pathname.startsWith("/study-dashboard") || pathname.startsWith("/study/");
+  const isEisfRoute = pathname === "/ereg-comments";
+  const isCommentsRoute =
+    pathname.includes("/comments") || pathname === "/comments";
+
+  const isStudiesActive =
+    isStudiesOverviewRoute || isStudyInternalRoute || isCommentsRoute;
+
+  useEffect(() => {
+    const handlePreviewRoleChange = () => {
+      setEffectiveRole(getEffectiveRole(currentUser));
+    };
+
+    window.addEventListener(ADMIN_PREVIEW_ROLE_EVENT, handlePreviewRoleChange);
+
+    return () => {
+      window.removeEventListener(
+        ADMIN_PREVIEW_ROLE_EVENT,
+        handlePreviewRoleChange
+      );
+    };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (isStudiesOverviewRoute || isStudyInternalRoute || isCommentsRoute) {
+      setStudiesOpen(true);
+    }
+  }, [isStudiesOverviewRoute, isStudyInternalRoute, isCommentsRoute, pathname]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      SIDEBAR_EXPANDED_STUDIES_KEY,
+      JSON.stringify(expandedStudies)
+    );
+  }, [expandedStudies]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      SIDEBAR_EXPANDED_SECTIONS_KEY,
+      JSON.stringify(expandedStudySections)
+    );
+  }, [expandedStudySections]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      SIDEBAR_STUDY_BINDER_OPEN_KEY,
+      JSON.stringify(studyBinderOpen)
+    );
+  }, [studyBinderOpen]);
+
+  useEffect(() => {
+    if (!isStudyInternalRoute) {
+      prevActiveStudyKeyRef.current = null;
+      return;
+    }
+
+    const studyMatch = pathname.match(
+      /^\/study-dashboard\/([^/?]+)/
+    );
+    const activeStudyKey = studyMatch?.[1];
+
+    if (!activeStudyKey) {
+      return;
+    }
+
+    if (prevActiveStudyKeyRef.current !== activeStudyKey) {
+      setStudyBinderOpen(true);
+      setExpandedStudies((prev) => ({
+        ...prev,
+        [activeStudyKey]: true
+      }));
+      prevActiveStudyKeyRef.current = activeStudyKey;
+    }
+  }, [pathname, isStudyInternalRoute]);
+
+  useEffect(() => {
+    const handleFolderTreeUpdate = () => {
+      setFolderTreeVersion((value) => value + 1);
+    };
+
+    window.addEventListener(FOLDER_TREE_EVENT, handleFolderTreeUpdate);
+
+    return () => {
+      window.removeEventListener(FOLDER_TREE_EVENT, handleFolderTreeUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (event) => {
@@ -63,109 +246,205 @@ function DashboardSidebar() {
         return;
       }
 
-      const nextWidth =
-        Math.min(
-          390,
-          Math.max(
-            220,
-            event.clientX
-          )
-        );
+      const nextWidth = Math.min(390, Math.max(220, event.clientX));
 
       setSidebarWidth(nextWidth);
-      localStorage.setItem(
-        "dashboardSidebarWidth",
-        String(nextWidth)
-      );
+
+      localStorage.setItem("dashboardSidebarWidth", String(nextWidth));
     };
 
     const handleMouseUp = () => {
       resizingRef.current = false;
-      document.body.classList.remove(
-        "sidebar-resizing"
-      );
+      document.body.classList.remove("sidebar-resizing");
     };
 
-    window.addEventListener(
-      "mousemove",
-      handleMouseMove
-    );
-    window.addEventListener(
-      "mouseup",
-      handleMouseUp
-    );
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      window.removeEventListener(
-        "mousemove",
-        handleMouseMove
-      );
-      window.removeEventListener(
-        "mouseup",
-        handleMouseUp
-      );
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
 
-  // Codex change: keep dashboard navigation role-aware from one place.
-  const dashboardPath =
-    currentUser?.role === "Admin"
-      ? "/admin-dashboard"
-      : currentUser?.role === "SiteStaff"
-        ? "/site-staff-dashboard"
-        : currentUser?.role === "PI"
-          ? "/pi-dashboard"
-          : currentUser?.role === "CRO"
-            ? "/cro-dashboard"
-            : currentUser?.role === "Sponsor"
-              ? "/sponsor-dashboard"
-              : "/dashboard";
+  const dashboardPath = getDashboardPath(effectiveRole);
 
-  // Codex change: active sidebar state now follows the current route.
   const isDashboardActive =
     pathname === "/dashboard" ||
-    (
-      pathname.endsWith("-dashboard") &&
-      !pathname.startsWith("/study-dashboard")
-    );
+    (pathname.endsWith("-dashboard") &&
+      !pathname.startsWith("/study-dashboard"));
 
-  const isStudiesActive =
-    pathname === "/studies" ||
-    pathname.startsWith("/study-dashboard") ||
-    pathname.startsWith("/study/");
-
-  // Codex change: shared helper prevents hardcoded "active" classes.
   const getLinkClass = (isActive) =>
-    isActive
-      ? "sidebar-link active"
-      : "sidebar-link";
-  
-  console.log(
-    "Studies =>",
-    JSON.parse(
-      localStorage.getItem("studies")
-    )
-  );
-  
-  const studies =
-    JSON.parse(
-      localStorage.getItem(
-        "studyFolders"
-      )
-    ) || [];
-  
-  const studyCount =
-    studies.length;
-  
-  const subjects =
-    JSON.parse(
-      localStorage.getItem(
-        "subjects"
-      )
-    ) || [];
-  
-  const subjectCount =
-    subjects.length;
+    isActive ? "sidebar-link active" : "sidebar-link";
+
+  const getSubmenuClass = (isOpen) =>
+    isOpen ? "submenu-item submenu-open" : "submenu-item";
+
+  const getSubmenuParentClass = (isOpen) =>
+    isOpen ? "submenu-parent submenu-open" : "submenu-parent";
+
+  const handleNav = (path) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
+  const handleDashboardClick = () => {
+    handleNav(dashboardPath);
+  };
+
+  const handleStudiesClick = () => {
+    if (pathname === "/studies" && studiesOpen) {
+      setStudiesOpen(false);
+      return;
+    }
+
+    setStudiesOpen(true);
+
+    if (pathname !== "/studies") {
+      handleNav("/studies");
+    }
+  };
+
+  const handleStudyBinderClick = (event) => {
+    event.stopPropagation();
+    setStudyBinderOpen((prev) => !prev);
+  };
+
+  const handleStudyNameClick = (studyKey, event) => {
+    event.stopPropagation();
+    navigateToStudySection(studyKey, "overview");
+  };
+
+  const handleCommentsClick = (event) => {
+    event.stopPropagation();
+    handleNav("/comments");
+  };
+
+  const toggleStudyNode = (studyKey, event) => {
+    event?.stopPropagation();
+
+    setExpandedStudies((prev) => ({
+      ...prev,
+      [studyKey]: !Boolean(prev[studyKey])
+    }));
+  };
+
+  const toggleStudySection = (studyKey, sectionKey, event) => {
+    event?.stopPropagation();
+    const compositeKey = `${studyKey}__${sectionKey}`;
+
+    setExpandedStudySections((prev) => ({
+      ...prev,
+      [compositeKey]: !Boolean(prev[compositeKey])
+    }));
+  };
+
+  const handleExpandableSectionLabelClick = (
+    studyKey,
+    sectionKey,
+    isSectionOpen,
+    event
+  ) => {
+    event?.stopPropagation();
+
+    if (isSectionOpen) {
+      toggleStudySection(studyKey, sectionKey, event);
+      return;
+    }
+
+    navigateToStudySection(studyKey, sectionKey);
+  };
+
+  const navigateToStudySection = (studyKey, section) => {
+    const study = studies.find((item) => getStudyKey(item) === studyKey);
+
+    if (study) {
+      localStorage.setItem("selectedStudy", JSON.stringify(study));
+    }
+
+    const tabMap = {
+      overview: "Overview",
+      subjects: "Subjects",
+      regulatory: "Regulatory",
+      reports: "Reports",
+      studyFolder: "Study Folder",
+      logs: "Logs"
+    };
+
+    const tab = tabMap[section] || "Overview";
+    handleNav(`/study-dashboard/${studyKey}?tab=${encodeURIComponent(tab)}`);
+  };
+
+  const handleSubjectClick = (studyKey, subject) => {
+    const subjectId = subject.subjectId || subject.id;
+    localStorage.setItem("selectedStudy", JSON.stringify({ code: studyKey }));
+    handleNav(`/subject/${subjectId}`);
+  };
+
+  const getSectionFolderNodes = (sectionKey, studyKey) => {
+    void folderTreeVersion;
+
+    if (sectionKey === "subjects") {
+      return [];
+    }
+
+    const tree = getFolderTree(sectionKey, studyKey);
+    const root = tree[0];
+
+    if (!root?.children?.length) {
+      return [];
+    }
+
+    return root.children;
+  };
+
+  const getSubjectSidebarFolders = (studyKey, subject) => {
+    void folderTreeVersion;
+
+    const subjectId = subject.subjectId || subject.id;
+    const contextKey = `${studyKey}::${subjectId}`;
+    return getFirstLevelFolders("subjects", contextKey);
+  };
+
+  const handleFolderNavigate = (studyKey, sectionKey, node) => {
+    const name = String(node?.name || "").toLowerCase();
+
+    if (
+      sectionKey === "studyFolder" &&
+      (name.includes("regulatory") || name.includes("reg"))
+    ) {
+      navigateToStudySection(studyKey, "regulatory");
+      return;
+    }
+
+    navigateToStudySection(studyKey, sectionKey);
+  };
+
+  const renderDynamicFolderNodes = (nodes, studyKey, sectionKey, depth = 0) =>
+    nodes.map((node) => {
+      const compositeKey = `${studyKey}__${sectionKey}__folder__${node.id}`;
+      const depthClass =
+        depth > 0 ? ` sidebar-tree-depth-${Math.min(depth, 2)}` : "";
+
+      return (
+        <div key={compositeKey}>
+          <div
+            className={`submenu-item subject-child${depthClass}`}
+            onClick={() => handleFolderNavigate(studyKey, sectionKey, node)}
+          >
+            {node.name}
+          </div>
+          {node.children?.length
+            ? renderDynamicFolderNodes(
+                node.children,
+                studyKey,
+                sectionKey,
+                depth + 1
+              )
+            : null}
+        </div>
+      );
+    });
 
   return (
     <div
@@ -176,287 +455,325 @@ function DashboardSidebar() {
         flexBasis: sidebarWidth
       }}
     >
-      <div
-        className="sidebar-logo"
-        onClick={() => navigate(dashboardPath)}
-      >
-        TriaNXT
-      </div>
+      <TriaNXTLogo size="sidebar" onClick={() => handleNav(dashboardPath)} />
 
       <div
         className={getLinkClass(isDashboardActive)}
-        onClick={() => {
-        
-          setStudiesOpen(false);
-        
-          setSubjectsOpen(false);
-        
-          setStudy_BinderOpen(false);
-        
-          setEisfOpen(false);
-        
-          setIcfOpen(false);
-        
-          setStudyFolderOpen(false);
-        
-          navigate(dashboardPath);
-        
-        }}
+        onClick={handleDashboardClick}
       >
-        <FiGrid size={18} />
+        <FiGrid size={16} />
         <span>Dashboard</span>
       </div>
 
       <div
-        className={getLinkClass(isStudiesActive)}
-        onClick={() => {
-          navigate("/studies");
-          setStudiesOpen(!studiesOpen);
-        }}
+        className={`${getLinkClass(isStudiesActive)} sidebar-folder sidebar-folder--no-indicator${
+          studiesOpen ? " submenu-open" : ""
+        }`}
+        onClick={handleStudiesClick}
       >
-        <FiFolder size={18} />
-        <span>
-          Studies ({studyCount})
-        </span>
+        <FiFolder size={16} />
+        <span>Studies ({studyCount})</span>
       </div>
 
       {studiesOpen && (
         <div className="sidebar-submenu">
           <div
-            className="submenu-parent"
-            onClick={() => setStudy_BinderOpen(!Study_BinderOpen)}
+            className={getSubmenuParentClass(studyBinderOpen)}
+            onClick={handleStudyBinderClick}
           >
             Study Binder
           </div>
 
-          {Study_BinderOpen && (
+          {studyBinderOpen && (
             <div className="nested-submenu">
-              {/* <div
-                className="submenu-item"
-                onClick={() => navigate("/studies")}
-              >
-                Study Overview
-              </div> */}
+              {studies.map((study) => {
+                const studyKey = getStudyKey(study);
+                const studyName = getStudyDisplayName(study);
+                const studyMeta = getStudyMeta(study);
+                const studySubjects = getStudySubjects(study);
+                const subjectCount = studySubjects.length;
+                const isStudyOpen = !!expandedStudies[studyKey];
 
-              <div
-                className="submenu-item"
-                onClick={() =>
-                  setSubjectsOpen(!subjectsOpen)
-                }
-              >
-                Subjects ({subjectCount})
-              </div>
-              
-              {subjectsOpen && (
-              
-                <>
-                  {subjects.map(subject => (
-                  
+                return (
+                  <div key={studyKey} className="subject-node">
                     <div
-                      key={subject.id}
-                      className="subject-node"
+                      className={`submenu-item subject-folder${
+                        isStudyOpen ? " submenu-open" : ""
+                      }`}
                     >
-                    
+                      <button
+                        type="button"
+                        className="sidebar-expander"
+                        aria-label={
+                          isStudyOpen
+                            ? "Collapse study sections"
+                            : "Expand study sections"
+                        }
+                        onClick={(event) => toggleStudyNode(studyKey, event)}
+                      >
+                        {isStudyOpen ? "−" : "+"}
+                      </button>
                       <div
-                        className="submenu-item subject-folder"
-                        onClick={() =>
-                          setExpandedSubjects(prev => ({
-                            ...prev,
-                            [subject.id]:
-                              !prev[subject.id]
-                          }))
+                        className="study-label-block"
+                        onClick={(event) =>
+                          handleStudyNameClick(studyKey, event)
                         }
                       >
-                        {subject.subjectId ||
-                          subject.id}
+                        <span className="study-label-name">{studyName}</span>
+                        {studyMeta && (
+                          <small className="study-label-meta">{studyMeta}</small>
+                        )}
                       </div>
-                        
-                      {expandedSubjects[
-                        subject.id
-                      ] && (
-                      
-                        <div className="nested-submenu">
-                        
-                          <div className="submenu-item subject-child">
-                            Screening
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Enrollment
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Visits
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            End Of Treatment
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Progress Notes
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Comments
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Files
-                          </div>
-                      
-                          <div className="submenu-item subject-child">
-                            Logs
-                          </div>
-                      
-                        </div>
-
-                      )}
-
                     </div>
 
-                  ))}
-                </>
+                    {isStudyOpen && (
+                      <div className="nested-submenu">
+                        {STUDY_SECTIONS.map((section) => {
+                          const sectionKey = section.key;
+                          const compositeKey = `${studyKey}__${sectionKey}`;
+                          const isSectionOpen =
+                            !!expandedStudySections[compositeKey];
 
-              )}
+                          if (section.expandable) {
+                            const displayLabel =
+                              sectionKey === "subjects"
+                                ? `Subjects (${subjectCount})`
+                                : section.label;
+
+                            return (
+                              <div key={compositeKey}>
+                                <div
+                                  className={`${getSubmenuClass(isSectionOpen)} submenu-item-with-toggle`}
+                                >
+                                  <button
+                                    type="button"
+                                    className="sidebar-expander"
+                                    aria-label={
+                                      isSectionOpen
+                                        ? "Collapse section"
+                                        : "Expand section"
+                                    }
+                                    onClick={(event) =>
+                                      toggleStudySection(
+                                        studyKey,
+                                        sectionKey,
+                                        event
+                                      )
+                                    }
+                                  >
+                                    {isSectionOpen ? "−" : "+"}
+                                  </button>
+                                  <span
+                                    className="submenu-item-label"
+                                    onClick={(event) =>
+                                      handleExpandableSectionLabelClick(
+                                        studyKey,
+                                        sectionKey,
+                                        isSectionOpen,
+                                        event
+                                      )
+                                    }
+                                  >
+                                    {displayLabel}
+                                  </span>
+                                </div>
+
+                                {isSectionOpen && sectionKey === "subjects" && (
+                                  <div className="nested-submenu">
+                                    {studySubjects.map((subject) => {
+                                      const subjectKey = String(
+                                        subject.subjectId || subject.id
+                                      );
+                                      const subjectFolders =
+                                        getSubjectSidebarFolders(
+                                          studyKey,
+                                          subject
+                                        );
+
+                                      return (
+                                        <div key={`${studyKey}-${subjectKey}`}>
+                                          <div
+                                            className="submenu-item subject-leaf"
+                                            onClick={() =>
+                                              handleSubjectClick(
+                                                studyKey,
+                                                subject
+                                              )
+                                            }
+                                          >
+                                            {subject.subjectId || subject.id}
+                                          </div>
+                                          {subjectFolders.map((folder) => (
+                                            <div
+                                              key={`${subjectKey}-${folder.id}`}
+                                              className="submenu-item subject-child"
+                                              onClick={() => {
+                                                localStorage.setItem(
+                                                  "selectedSubject",
+                                                  JSON.stringify({
+                                                    ...subject,
+                                                    studyId: studyKey
+                                                  })
+                                                );
+                                                handleNav(
+                                                  `/study-dashboard/${studyKey}?tab=${encodeURIComponent("Subjects")}&subject=${encodeURIComponent(subjectKey)}&folder=${encodeURIComponent(folder.id)}`
+                                                );
+                                              }}
+                                            >
+                                              {folder.name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {isSectionOpen && sectionKey === "studyFolder" && (
+                                    <div className="nested-submenu">
+                                      {renderDynamicFolderNodes(
+                                        getSectionFolderNodes(
+                                          "studyFolder",
+                                          studyKey
+                                        ),
+                                        studyKey,
+                                        "studyFolder"
+                                      )}
+                                    </div>
+                                  )}
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              key={compositeKey}
+                              className="submenu-item"
+                              onClick={() =>
+                                navigateToStudySection(studyKey, sectionKey)
+                              }
+                            >
+                              {section.label}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           <div
-            className="submenu-parent"
-            onClick={() => setEisfOpen(!eisfOpen)}
+            className={`submenu-item sidebar-comments-link${
+              isCommentsRoute ? " active" : ""
+            }`}
+            onClick={handleCommentsClick}
           >
-            eISF
+            <FiMessageSquare size={14} />
+            <span>Comments</span>
           </div>
-
-          {eisfOpen && (
-            <div className="nested-submenu">
-              <div className="submenu-item">
-                Essential Documents
-              </div>
-              <div className="submenu-item">
-                Monitoring Reports
-              </div>
-              <div className="submenu-item">
-                Site Files
-              </div>
-            </div>
-          )}
-
-          <div
-            className="submenu-parent"
-            onClick={() => setIcfOpen(!icfOpen)}
-          >
-            ICF
-          </div>
-
-          {icfOpen && (
-            <div className="nested-submenu">
-              <div className="submenu-item">
-                Approved Versions
-              </div>
-              <div className="submenu-item">
-                Archived Versions
-              </div>
-            </div>
-          )}
-
-          <div
-            className="submenu-parent"
-            onClick={() => setStudyFolderOpen(!studyFolderOpen)}
-          >
-            Study Folder
-          </div>
-
-          {studyFolderOpen && (
-            <div className="nested-submenu">
-              <div className="submenu-item">
-                Protocol
-              </div>
-              <div className="submenu-item">
-                Regulatory
-              </div>
-              <div className="submenu-item">
-                Monitoring
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       <div
-        className={getLinkClass(pathname.includes("site-performance"))}
-        onClick={() => navigate("/site-performance")}
+        className={getLinkClass(isEisfRoute)}
+        onClick={() => handleNav("/ereg-comments")}
       >
-        <FiTrendingUp size={18} />
-        <span>Site Performance</span>
+        <FiClipboard size={16} />
+        <span>eISF</span>
       </div>
 
-      <div
-        className={getLinkClass(pathname.includes("recruitment"))}
-        onClick={() => navigate("/recruitment")}
-      >
-        <FiUsers size={18} />
-        <span>Recruitment</span>
-      </div>
+      {sidebarItems.some((item) => item.key === "site-performance") && (
+        <div
+          className={getLinkClass(pathname.includes("site-performance"))}
+          onClick={() => handleNav("/site-performance")}
+        >
+          <FiTrendingUp size={16} />
+          <span>Site Performance</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("regulatory"))}
-        onClick={() => navigate("/regulatory")}
-      >
-        <FiFileText size={18} />
-        <span>Regulatory</span>
-      </div>
+      {sidebarItems.some((item) => item.key === "recruitment") && (
+        <div
+          className={getLinkClass(pathname.includes("recruitment"))}
+          onClick={() => handleNav("/recruitment")}
+        >
+          <FiUsers size={16} />
+          <span>Recruitment</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("reports"))}
-        onClick={() => navigate("/reports")}
-      >
-        <FiBarChart2 size={18} />
-        <span>Reports</span>
-      </div>
+      {canManageUsers && (
+        <div
+          className={getLinkClass(pathname.includes("user-management"))}
+          onClick={() => handleNav("/user-management")}
+        >
+          <FiUsers size={16} />
+          <span>User Management</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("user-management"))}
-        onClick={() => navigate("/user-management")}
-      >
-        <FiUsers size={18} />
-        <span>User Management</span>
-      </div>
+      {canApprovePermissions && (
+        <div
+          className={getLinkClass(
+            pathname.includes("access-permission") ||
+              pathname.includes("permission-approval")
+          )}
+          onClick={() => handleNav("/access-permission")}
+        >
+          <FiShield size={16} />
+          <span>Access Permission</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("permission-approval"))}
-        onClick={() => navigate("/permission-approval")}
-      >
-        <FiClipboard size={18} />
-        <span>Permission Approval</span>
-      </div>
+      {canRequestAccess && (
+        <div
+          className={getLinkClass(pathname.includes("access-request"))}
+          onClick={() => handleNav("/access-request")}
+        >
+          <FiShield size={16} />
+          <span>Request Access</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("notifications"))}
-        onClick={() => navigate("/notifications")}
-      >
-        <FiBell size={18} />
-        <span>Notifications</span>
-      </div>
+      {canViewCROOverview && (
+        <div
+          className={getLinkClass(pathname.includes("cro-overview"))}
+          onClick={() => handleNav("/cro-overview")}
+        >
+          <FiEye size={16} />
+          <span>CRO Overview</span>
+        </div>
+      )}
 
-      <div
-        className={getLinkClass(pathname.includes("settings"))}
-        onClick={() => navigate("/settings")}
-      >
-        <FiSettings size={18} />
-        <span>Settings</span>
-      </div>
+      {sidebarItems.some((item) => item.key === "notifications") && (
+        <div
+          className={getLinkClass(pathname.includes("notifications"))}
+          onClick={() => handleNav("/notifications")}
+        >
+          <FiBell size={16} />
+          <span>Notifications</span>
+        </div>
+      )}
 
-      {/* Codex change: drag this handle to resize the fixed dashboard sidebar. */}
+      {sidebarItems.some((item) => item.key === "settings") && (
+        <div
+          className={getLinkClass(pathname.includes("settings"))}
+          onClick={() => handleNav("/settings")}
+        >
+          <FiSettings size={16} />
+          <span>Settings</span>
+        </div>
+      )}
+
       <div
         className="sidebar-resize-handle"
         onMouseDown={(event) => {
           event.preventDefault();
           resizingRef.current = true;
-          document.body.classList.add(
-            "sidebar-resizing"
-          );
+          document.body.classList.add("sidebar-resizing");
         }}
       />
     </div>

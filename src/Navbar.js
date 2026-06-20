@@ -218,10 +218,10 @@ function Navbar({ name, setSelectedPage, searchText, setSearchText }) {
               
               <span
                 onClick={() =>
-                  navigate("/queries")
+                  navigate("/comments")
                 }
               >
-                Queries
+                Comments
               </span>
               
               <span

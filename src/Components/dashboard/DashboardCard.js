@@ -5,12 +5,13 @@ import "./DashboardCard.css";
 
 function DashboardCard({
   title,
-  children
+  children,
+  className = ""
 }) {
 
   return (
 
-    <div className="dashboard-widget-card">
+    <div className={`dashboard-widget-card${className ? ` ${className}` : ""}`}>
 
       <div className="dashboard-widget-header">
 

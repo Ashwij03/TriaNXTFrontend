@@ -5,41 +5,30 @@ import {
   Navigate,
 } from "react-router-dom";
 
-/* Existing Components */
 import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
-import Profile from "./Profile";
-import Studies from "./pages/studies/Studies";
-import StudyDashboard from "./pages/studies/StudyDashboard";
-import StudyDetails from "./pages/studies/StudyDetails";
-import VisitDetails from "./pages/visits/VisitDetails";
-import CompletedVisit from "./pages/visits/CompletedVisit";
-import SubjectsDashboard from "./pages/subjects/SubjectsDashboard";
-import SubjectProfile from "./pages/subjects/SubjectProfile";
-import SubjectPage from "./pages/subjects/SubjectPage";
+import ProfilePage from "./pages/shared/profile/ProfilePage";
+import SecurityPage from "./pages/shared/profile/SecurityPage";
+import ROLES from "./constants/roles";
+import Studies from "./pages/shared/studies/Studies";
+import StudyDashboard from "./pages/shared/studies/StudyDashboard";
+import StudyDetails from "./pages/shared/studies/StudyDetails";
+import VisitDetails from "./pages/shared/visits/VisitDetails";
+import CompletedVisit from "./pages/shared/visits/CompletedVisit";
+import SubjectsDashboard from "./pages/shared/subjects/SubjectsDashboard";
+import SubjectProfilePage from "./pages/shared/subjects/SubjectProfilePage";
+import SubjectPage from "./pages/shared/subjects/SubjectPage";
 import ProtectedRoute from "./ProtectedRoute";
 import ForgotPassword from "./ForgotPassword";
-// import DashboardLayout from "./Components/dashboard/DashboardLayout";
-/* Friend Components */
-import ERegComments from "./Components/ERegComments";
-import TrainingLog from "./Components/TrainingLog";
-import DelegationLog from "./Components/DelegationLog";
+import EISFHub from "./pages/shared/documents/EISFHub";
 
-import ProgressNotes from "./pages/operations/ProgressNotes";
-import Comments from "./pages/operations/Comments";
-import StudyLogs from "./pages/operations/StudyLogs";
-import FileDetails from "./pages/documents/FileDetails";
-
-// newly added
-import AdminDashboard from "./pages/dashboards/AdminDashboard";
-import SiteStaffDashboard from "./pages/dashboards/SiteStaffDashboard";
-
-import CRODashboard from "./pages/dashboards/CRODashboard";
-import SponsorDashboard from "./pages/dashboards/SponsorDashboard";
-import AccessRequestForm from "./pages/AccessRequestForm";
-import PermissionApproval from "./pages/PermissionApproval";
-import UserManagement from "./pages/UserManagement"; //newly added till here
+import ProgressNotes from "./pages/shared/operations/ProgressNotes";
+import OperationsComments from "./pages/shared/operations/Comments";
+import StudyCommentsPage from "./pages/shared/studies/StudyCommentsPage";
+import StudyLogsPage from "./pages/shared/studies/StudyLogsPage";
+import FileDetails from "./pages/shared/documents/FileDetails";
+//newly added till here
 import PIDashboard from "./pages/dashboards/pi/PIDashboard";
 import PIComments from "./pages/dashboards/pi/PIComments";
 import PICommentModal from "./pages/dashboards/pi/PICommentModal";
@@ -55,10 +44,40 @@ import PISitePerformance from "./pages/dashboards/pi/PISitePerformance";
 import PIStudyFolderDashboard from "./pages/dashboards/pi/PIStudyFolderDashboard";
 import PIStudySubjectsProfile from "./pages/dashboards/pi/PIStudySubjectsProfile";
 import PISubjectsDashboard from "./pages/dashboards/pi/PISubjectsDashboard";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import SiteStaffDashboard from "./pages/SiteStaff/Dashboard";
+import CRODashboard from "./pages/CRO/Dashboard";
+import SponsorDashboard from "./pages/Sponsor/Dashboard";
+import AccessRequestForm from "./pages/shared/AccessRequestForm";
+import AccessPermissions from "./pages/shared/AccessPermissions";
+import PermissionApproval from "./pages/shared/PermissionApproval";
+import UserManagement from "./pages/shared/UserManagement";
+import CROOverview from "./pages/CRO/CROOverview";
+
+import Sites from "./pages/Admin/Sites";
+import AdminComments from "./pages/Admin/Comments";
+import SitePerformance from "./pages/Admin/SitePerformance";
+import Recruitment from "./pages/Admin/Recruitment";
+import Regulatory from "./pages/Admin/Regulatory";
+import Reports from "./pages/Admin/Reports";
+import Notifications from "./pages/Admin/Notifications";
+import Settings from "./pages/Admin/Settings";
+import LogsPage from "./pages/shared/logs/LogsPage";
+import TrainingLogPage from "./pages/shared/logs/TrainingLogPage";
+import DelegationLogPage from "./pages/shared/logs/DelegationLogPage";
+import { getDashboardPath, getCurrentUser } from "./services/roleService";
+
+function RoleAwareFallback() {
+  const user = getCurrentUser();
+  const destination = user?.role
+    ? getDashboardPath(user.role)
+    : "/login";
+
+  return <Navigate to={destination} replace />;
+}
 
 function App() {
   return (
-    
     <Routes>
       <Route
   path="/pi-livechat"
@@ -111,39 +130,31 @@ function App() {
     </ProtectedRoute>
   }
 />
+      <Route path="/" element={<Navigate to="/login" />} />
 
-      {/* Auth */}
-      <Route
-        path="/login"
-        element={<Login />}
-      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/completedvisit" element={<CompletedVisit />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      <Route
-        path="/register"
-        element={<Register />}
-      />
-      <Route
-        path="/completedvisit"
-        element={<CompletedVisit />}
-      />
-      <Route
-        path="/forgot-password"
-        element={<ForgotPassword />}
-      />
-
-
-      {/* Profile */}
       <Route
         path="/profile"
         element={
           <ProtectedRoute>
-            <Profile />
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
 
-      {/* Study */}
-      {/* Codex change: study list and dashboard use the same ProtectedRoute flow as workspace pages. */}
+      <Route
+        path="/security"
+        element={
+          <ProtectedRoute>
+            <SecurityPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/studies"
         element={
@@ -152,7 +163,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-            
+
       <Route
         path="/study-dashboard/:id"
         element={
@@ -162,7 +173,24 @@ function App() {
         }
       />
 
-      {/* Codex change: keep only /study/:code so StudyDetails receives params.code correctly. */}
+      <Route
+        path="/study/:code/logs"
+        element={
+          <ProtectedRoute>
+            <StudyLogsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/study/:code/comments"
+        element={
+          <ProtectedRoute>
+            <StudyCommentsPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/study/:code"
         element={
@@ -172,7 +200,6 @@ function App() {
         }
       />
 
-      {/* Visit */}
       <Route
         path="/visit/:visitId"
         element={
@@ -184,16 +211,22 @@ function App() {
 
       <Route
         path="/subjects"
-        element={<SubjectsDashboard />}
+        element={
+          <ProtectedRoute>
+            <SubjectsDashboard />
+          </ProtectedRoute>
+        }
       />
 
-      {/* Subject */}
       <Route
         path="/subject/:id"
-        element={<SubjectProfile />}
+        element={
+          <ProtectedRoute>
+            <SubjectProfilePage />
+          </ProtectedRoute>
+        }
       />
 
-      {/* Extra Subject Page */}
       <Route
         path="/subject-page"
         element={
@@ -203,17 +236,24 @@ function App() {
         }
       />
 
-      {/* Comments */}
       <Route
-        path="/comments"
+        path="/operations/comments"
         element={
           <ProtectedRoute>
-            <Comments />
+            <OperationsComments />
           </ProtectedRoute>
         }
       />
 
-      {/* Progress Notes */}
+      <Route
+        path="/comments"
+        element={
+          <ProtectedRoute>
+            <AdminComments />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/progress-notes"
         element={
@@ -223,7 +263,6 @@ function App() {
         }
       />
 
-      {/* File Details */}
       <Route
         path="/file-details"
         element={
@@ -233,42 +272,57 @@ function App() {
         }
       />
 
-      {/* Study Logs */}
       <Route
         path="/study-logs"
         element={
           <ProtectedRoute>
-            <StudyLogs />
+            <StudyLogsPage />
           </ProtectedRoute>
         }
       />
 
-      {/* Delegation */}
+      <Route
+        path="/logs"
+        element={
+          <ProtectedRoute>
+            <LogsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/logs/training"
+        element={
+          <ProtectedRoute>
+            <TrainingLogPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/logs/delegation"
+        element={
+          <ProtectedRoute>
+            <DelegationLogPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/delegation"
-        element={
-          <ProtectedRoute>
-            <DelegationLog />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/logs/delegation" replace />}
       />
 
-      {/* Training */}
       <Route
         path="/training"
-        element={
-          <ProtectedRoute>
-            <TrainingLog />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/logs/training" replace />}
       />
 
-      {/* EReg Comments */}
       <Route
         path="/ereg-comments"
         element={
           <ProtectedRoute>
-            <ERegComments />
+            <EISFHub />
           </ProtectedRoute>
         }
       />
@@ -277,30 +331,39 @@ function App() {
 
       {/* //newly added */}
 
+      
       <Route
-      path="/admin-dashboard"
-      element={
-        <ProtectedRoute>
-          <AdminDashboard />
-        </ProtectedRoute>
-      }
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
       />
 
       <Route
         path="/site-staff-dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.SITE_STAFF]}>
             <SiteStaffDashboard />
           </ProtectedRoute>
         }
       />
 
 
+      <Route
+        path="/pi-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.PI]}>
+            <PIDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/cro-dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.CRO]}>
             <CRODashboard />
           </ProtectedRoute>
         }
@@ -309,7 +372,7 @@ function App() {
       <Route
         path="/sponsor-dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.SPONSOR]}>
             <SponsorDashboard />
           </ProtectedRoute>
         }
@@ -325,16 +388,32 @@ function App() {
       />
 
       <Route
+        path="/access-permission"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SITE_STAFF]}>
+            <AccessPermissions />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/permission-approval"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SITE_STAFF]}>
             <PermissionApproval />
           </ProtectedRoute>
         }
-      /> 
-        {/* newly added till here */}
+      />
 
-      {/* Dashboard */}
+      <Route
+        path="/cro-overview"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SITE_STAFF, ROLES.CRO]}>
+            <CROOverview />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/dashboard"
         element={
@@ -347,14 +426,83 @@ function App() {
       <Route
         path="/user-management"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SITE_STAFF]}>
             <UserManagement />
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/sites"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CRO]}>
+            <Sites />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/queries"
+        element={<Navigate to="/comments" replace />}
+      />
+
+      <Route
+        path="/site-performance"
+        element={
+          <ProtectedRoute>
+            <SitePerformance />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruitment"
+        element={
+          <ProtectedRoute>
+            <Recruitment />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/regulatory"
+        element={
+          <ProtectedRoute>
+            <Regulatory />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<RoleAwareFallback />} />
     </Routes>
   );
 }
 
 export default App;
-

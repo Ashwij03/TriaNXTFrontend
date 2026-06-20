@@ -1,174 +1,158 @@
+// UPDATED: Dashboard service now sources dynamic comment data from adminService/studyService
+// TODO: Comments code is yet to be completed — pendingQueries key kept for studies dashboard compatibility
 
-import { getStudies } from "./studyService";
+import { getStudies, getRecentActivityLogs } from "./studyService";
+import {
+  getComments,
+  getSchedules,
+  getSites,
+  initializeAdminData
+} from "./adminService";
+import { getUpcomingVisitsWindow } from "./visitScheduleService";
 
 export const getStudiesDashboard = async () => {
+  initializeAdminData();
+
   const studies = getStudies();
-  const totalSubjects =
-    studies.reduce(
-      (sum, study) => sum + Number(study.enrolled || 0),
-      0
-    );
+  const comments = getComments();
+  const schedules = getSchedules();
+  const sites = getSites();
+  const totalSubjects = studies.reduce(
+    (sum, study) => sum + Number(study.enrolled || 0),
+    0
+  );
+  const openComments = comments.filter((c) => c.status === "Open");
 
   return {
     kpis: {
       studies: studies.length,
       subjects: totalSubjects,
-      queries: 18,
-      visits: 36,
+      comments: openComments.length,
+      visits: schedules.length
     },
 
-    enrollmentTrend: [
-      // Codex change: DashboardBarChart reads XAxis dataKey="name" and Bar dataKey="value".
-      { name: "Jan", value: 12 },
-      { name: "Feb", value: 18 },
-      { name: "Mar", value: 25 },
-      { name: "Apr", value: 32 },
-      { name: "May", value: 41 },
-      { name: "Jun", value: 55 },
-    ],
+    enrollmentTrend:
+      studies.length > 0
+        ? studies.slice(0, 6).map((study, index) => ({
+            name: study.code || study.name || `Study ${index + 1}`,
+            value: Number(study.enrolled || index + 4)
+          }))
+        : [
+            { name: "Jan", value: 12 },
+            { name: "Feb", value: 18 },
+            { name: "Mar", value: 25 },
+            { name: "Apr", value: 32 },
+            { name: "May", value: 41 },
+            { name: "Jun", value: 55 }
+          ],
 
-    studyDistribution: [
-      ...studies.map((study) => ({
-        name: study.name,
-        value: Number(study.enrolled || 0)
+    studyDistribution: studies.map((study) => ({
+      name: study.name,
+      value: Number(study.enrolled || 0)
+    })),
+
+    recentSubjects: Object.entries(
+      JSON.parse(localStorage.getItem("subjectsByStudy") || "{}")
+    )
+      .flatMap(([, subjects]) => (Array.isArray(subjects) ? subjects : []))
+      .slice(0, 5)
+      .map((subject) => ({
+        id: subject.subjectId || subject.id,
+        study: subject.study || "N/A",
+        status: subject.status || "Unknown"
       })),
-    ],
 
-    recentSubjects: [
-      {
-        id: "SUB-001",
-        study: "OCA Trial",
-        status: "Active",
-      },
-      {
-        id: "SUB-002",
-        study: "SeptiTest",
-        status: "Screening",
-      },
-    ],
+    upcomingVisits: getUpcomingVisitsWindow(schedules, 30).slice(0, 8).map((item) => ({
+      subject: item.subjectId,
+      subjectId: item.subjectId,
+      visit: item.visit,
+      date: item.date,
+      study: item.study,
+      studyCode: item.study,
+      status: item.status
+    })),
 
-    upcomingVisits: [
-      {
-        subject: "SUB-001",
-        visit: "Visit 3",
-        date: "2026-06-15",
-      },
-      {
-        subject: "SUB-002",
-        visit: "Screening Review",
-        date: "2026-06-10",
-      },
-      {
-        subject: "SUB-004",
-        visit: "Baseline",
-        date: "2026-06-24",
-      },
-    ],
+    pendingComments: openComments.slice(0, 5).map((comment) => ({
+      id: comment.id,
+      subject: comment.subjectId,
+      status: comment.status
+    })),
+    // UPDATED: legacy key retained for StudyDashboard (studies folder — not modified)
+    pendingQueries: openComments.slice(0, 5).map((comment) => ({
+      id: comment.id,
+      subject: comment.subjectId,
+      status: comment.status
+    })),
 
-    pendingQueries: [
-      {
-        id: "Q-101",
-        subject: "SUB-001",
-        status: "Open",
-      },
-    ],
-
-    // Codex change: calendar schedules drive marked dates and date-specific visit details.
-    calendarSchedules: [
-      {
-        date: "2026-06-10",
-        time: "09:30 AM",
-        subjectId: "SUB-002",
-        subjectName: "Subject 02",
-        visit: "Screening Review",
-        study: "SeptiTest",
-        site: "Apollo Hospital",
-        status: "Scheduled",
-      },
-      {
-        date: "2026-06-15",
-        time: "11:00 AM",
-        subjectId: "SUB-001",
-        subjectName: "Subject 01",
-        visit: "Visit 3",
-        study: "OCA Trial",
-        site: "Apollo Hospital",
-        status: "Due",
-      },
-      {
-        date: "2026-06-15",
-        time: "02:30 PM",
-        subjectId: "SUB-003",
-        subjectName: "Subject 03",
-        visit: "Lab Follow-up",
-        study: "OCA Trial",
-        site: "Apollo Hospital",
-        status: "Scheduled",
-      },
-      {
-        date: "2026-06-24",
-        time: "10:15 AM",
-        subjectId: "SUB-004",
-        subjectName: "Subject 04",
-        visit: "Baseline",
-        study: "Headache Study",
-        site: "Apollo Hospital",
-        status: "Scheduled",
-      },
-    ],
+    calendarSchedules: schedules,
 
     alerts: [
-      {
-        type: "warning",
-        title: "Visit Window",
-        message: "SUB-001 Visit 3 is due on 2026-06-15.",
-      },
-      {
-        type: "info",
-        title: "Schedule Update",
-        message: "Screening Review is scheduled for SUB-002 on 2026-06-10.",
-      },
+      ...(openComments.length > 0
+        ? [
+            {
+              type: "danger",
+              title: "Open Comments",
+              message: `${openComments.length} comments require resolution`
+            }
+          ]
+        : []),
+      ...(schedules.find((s) => s.status === "Due")
+        ? [
+            {
+              type: "warning",
+              title: "Visit Window",
+              message: `${schedules.find((s) => s.status === "Due").subjectId} visit is due`
+            }
+          ]
+        : []),
+      ...(sites.length > 0
+        ? [
+            {
+              type: "info",
+              title: "Site Network",
+              message: `${sites.filter((s) => s.status === "Active").length} active sites`
+            }
+          ]
+        : [])
     ],
 
-    // Codex change: table data lives in the service so backend integration can replace this layer later.
-    studies:
-      studies.map((study) => ({
-        studyId: study.code,
-        protocol: study.protocol || study.name,
-        site: study.site || study.location,
-        subjects: study.enrolled,
-        status: study.status
-      })),
+    studies: studies.map((study) => ({
+      studyId: study.code,
+      protocol: study.protocol || study.name,
+      site: study.site || study.location,
+      subjects: study.enrolled,
+      status: study.status
+    }))
   };
 };
 
 export const getRecentActivities = () => {
+  initializeAdminData();
 
-  return [
+  const auditLogs = getRecentActivityLogs(5).map((log) => ({
+    id: log.id,
+    type: log.action || "System",
+    title: log.action || "System activity",
+    site: log.studyName || log.studyCode || log.subjectId || "System",
+    time: log.timestamp
+      ? new Date(log.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      : "Recently"
+  }));
 
-    {
-      id: 1,
-      type: "Subject",
-      title: "Subject SUB-001 enrolled",
-      site: "Apollo Hospital",
-      time: "09:10 AM",
-    },
+  if (auditLogs.length > 0) {
+    return auditLogs;
+  }
 
-    {
-      id: 2,
-      type: "Visit",
-      title: "Visit 3 completed",
-      site: "Apollo Hospital",
-      time: "08:45 AM",
-    },
+  const schedules = getSchedules().slice(0, 3);
 
-    {
-      id: 3,
-      type: "Document",
-      title: "ICF_v2.pdf uploaded",
-      site: "Apollo Hospital",
-      time: "08:00 AM",
-    },
-
-  ];
+  return schedules.map((item, index) => ({
+    id: `schedule-activity-${index}`,
+    type: "Visit",
+    title: `${item.visit} for ${item.subjectName}`,
+    site: item.site,
+    time: item.time
+  }));
 };
