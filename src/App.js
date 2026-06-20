@@ -34,24 +34,83 @@ import FileDetails from "./pages/documents/FileDetails";
 // newly added
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import SiteStaffDashboard from "./pages/dashboards/SiteStaffDashboard";
-import PIDashboard from "./pages/dashboards/PIDashboard";
+
 import CRODashboard from "./pages/dashboards/CRODashboard";
 import SponsorDashboard from "./pages/dashboards/SponsorDashboard";
 import AccessRequestForm from "./pages/AccessRequestForm";
 import PermissionApproval from "./pages/PermissionApproval";
 import UserManagement from "./pages/UserManagement"; //newly added till here
+import PIDashboard from "./pages/dashboards/pi/PIDashboard";
+import PIComments from "./pages/dashboards/pi/PIComments";
+import PICommentModal from "./pages/dashboards/pi/PICommentModal";
+import PIEISFDashboard from "./pages/dashboards/pi/PIEISFDashboard";
+import PIICFDashboard from "./pages/dashboards/pi/PIICFDashboard";
+import PILiveChat from "./pages/dashboards/pi/PILiveChat";
+import PINotifications from "./pages/dashboards/pi/PINotifications";
+import PIRecruitment from "./pages/dashboards/pi/PIRecuritment";
+import PIRegulatory from "./pages/dashboards/pi/PIRegulatory";
+import PIReports from "./pages/dashboards/pi/PIReports";
+import PISettings from "./pages/dashboards/pi/PISettings";
+import PISitePerformance from "./pages/dashboards/pi/PISitePerformance";
+import PIStudyFolderDashboard from "./pages/dashboards/pi/PIStudyFolderDashboard";
+import PIStudySubjectsProfile from "./pages/dashboards/pi/PIStudySubjectsProfile";
+import PISubjectsDashboard from "./pages/dashboards/pi/PISubjectsDashboard";
 
 function App() {
   return (
     
     <Routes>
+      <Route
+  path="/pi-livechat"
+  element={<PILiveChat />}
+/>
+<Route path="/pi-comments" element={<PIComments />} />
+
+      <Route path="/pi-site-performance" element={<PISitePerformance />} />
+<Route path="/pi-recruitment" element={<PIRecruitment />} />
+<Route path="/pi-regulatory" element={<PIRegulatory />} />
+<Route path="/pi-reports" element={<PIReports />} />
+<Route path="/pi-notifications" element={<PINotifications />} />
+<Route path="/pi-settings" element={<PISettings />} />
+<Route path="*" element={<Navigate to="/dashboard" />} />
+<Route
+  path="/pi-subjects-dashboard"
+  element={<PISubjectsDashboard />}
+/>
+
+<Route
+  path="/pi-study-folder-dashboard"
+  element={<PIStudyFolderDashboard />}
+/>
+
+<Route
+  path="/pi-study-subject-profile"
+  element={<PIStudySubjectsProfile />}
+/>
+
+<Route
+  path="/pi-eisf-dashboard"
+  element={<PIEISFDashboard />}
+/>
+
+<Route
+  path="/pi-icf-dashboard"
+  element={<PIICFDashboard />}
+/>
 
       {/* Default */}
       <Route
         path="/"
         element={<Navigate to="/login" />}
       />
-     
+     <Route
+  path="/pi-dashboard"
+  element={
+    <ProtectedRoute>
+      <PIDashboard />
+    </ProtectedRoute>
+  }
+/>
 
       {/* Auth */}
       <Route
@@ -215,10 +274,6 @@ function App() {
       />
 
       {/* Fallback */}
-      <Route
-        path="*"
-        element={<Navigate to="/dashboard" />}
-      />
 
       {/* //newly added */}
 
@@ -240,14 +295,7 @@ function App() {
         }
       />
 
-      <Route
-        path="/pi-dashboard"
-        element={
-          <ProtectedRoute>
-            <PIDashboard />
-          </ProtectedRoute>
-        }
-      />
+
 
       <Route
         path="/cro-dashboard"

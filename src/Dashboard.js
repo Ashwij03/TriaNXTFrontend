@@ -11,7 +11,6 @@ function Dashboard() {
   const [name, setName] = useState("Guest");
   const [files, setFiles] = useState({});
   const [uploading, setUploading] = useState(false);
-  
   const [studies] = useState([
     {
       id: "747-303",
@@ -112,17 +111,15 @@ const addSubject = () => {
 	      )
 	    }));
 	  };
-  return (
-    <div className="dashboard">
-	<Navbar
-	  name={name}
-	  setSelectedPage={setSelectedPage}
-	  searchText={searchText}
+  return ( 
+    <div className="dashboard"> 
+	<Navbar 
+	  name={name} 
+	  setSelectedPage={setSelectedPage} 
+	  searchText={searchText} 
 	  setSearchText={setSearchText}
-	/>
-
+	/> 
       <div className="main-layout">
-
         {/* SIDEBAR */}
         <div className="sidebar">
 
@@ -160,7 +157,6 @@ const addSubject = () => {
 				    }
 				  >
 				  <span>📘 {sub.name}</span>
-
 				  <button
 				    type="button"
 				    className="delete-btn"
