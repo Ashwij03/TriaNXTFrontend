@@ -160,11 +160,7 @@ function DashboardLayout({ children }) {
       )}
 
       <div className={sidebarWrapClass}>
-        <DashboardSidebar
-          collapsed={viewportMode === "desktop" && sidebarCollapsed}
-          compact={viewportMode === "tablet"}
-          onNavigate={() => setSidebarOpen(false)}
-        />
+        <DashboardSidebar onNavigate={() => setSidebarOpen(false)} />
       </div>
 
       <div className="dashboard-main">

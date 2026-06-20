@@ -26,10 +26,7 @@ import {
   FiShield,
   FiTrendingUp,
   FiUsers,
-  FiEye,
-  FiUser,
-  FiBarChart2,
-  FiFileText
+  FiEye
 } from "react-icons/fi";
 
 const SIDEBAR_EXPANDED_STUDIES_KEY = "sidebarExpandedStudies";
@@ -54,7 +51,7 @@ const STUDY_SECTIONS = [
   { key: "logs", label: "Logs" }
 ];
 
-function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
+function DashboardSidebar({ onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
@@ -151,17 +148,8 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
     effectiveUser?.role === "Admin" ||
     effectiveUser?.role === "SiteStaff" ||
     effectiveUser?.role === "CRO";
-  const canViewAuditLogs =
-    effectiveUser?.role === "Admin" || effectiveUser?.role === "SiteStaff";
   const canRequestAccess =
     effectiveUser?.role === "CRO" || effectiveUser?.role === "Sponsor";
-
-  const sidebarClassName = [
-    "enterprise-sidebar",
-    collapsed || compact ? "is-collapsed" : ""
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   const isStudiesOverviewRoute = pathname === "/studies";
   const isStudyInternalRoute =
@@ -171,7 +159,7 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
     pathname.includes("/comments") || pathname === "/comments";
 
   const isStudiesActive =
-    isStudiesOverviewRoute || isStudyInternalRoute;
+    isStudiesOverviewRoute || isStudyInternalRoute || isCommentsRoute;
 
   useEffect(() => {
     const handlePreviewRoleChange = () => {
@@ -680,16 +668,18 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
               })}
             </div>
           )}
+
+          <div
+            className={`submenu-item sidebar-comments-link${
+              isCommentsRoute ? " active" : ""
+            }`}
+            onClick={handleCommentsClick}
+          >
+            <FiMessageSquare size={14} />
+            <span>Comments</span>
+          </div>
         </div>
       )}
-
-      <div
-        className={getLinkClass(isCommentsRoute)}
-        onClick={handleCommentsClick}
-      >
-        <FiMessageSquare size={16} />
-        <span>Comments</span>
-      </div>
 
       <div
         className={getLinkClass(isEisfRoute)}
@@ -719,16 +709,6 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
         </div>
       )}
 
-      {sidebarItems.some((item) => item.key === "reports") && (
-        <div
-          className={getLinkClass(pathname.includes("/reports"))}
-          onClick={() => handleNav("/reports")}
-        >
-          <FiBarChart2 size={16} />
-          <span>Reports</span>
-        </div>
-      )}
-
       {canManageUsers && (
         <div
           className={getLinkClass(pathname.includes("user-management"))}
@@ -748,7 +728,7 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
           onClick={() => handleNav("/access-permission")}
         >
           <FiShield size={16} />
-          <span>Permission Approval</span>
+          <span>Access Permission</span>
         </div>
       )}
 
@@ -772,16 +752,6 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
         </div>
       )}
 
-      {canViewAuditLogs && (
-        <div
-          className={getLinkClass(pathname === "/logs" || pathname.startsWith("/logs/"))}
-          onClick={() => handleNav("/logs")}
-        >
-          <FiFileText size={16} />
-          <span>Audit Logs</span>
-        </div>
-      )}
-
       {sidebarItems.some((item) => item.key === "notifications") && (
         <div
           className={getLinkClass(pathname.includes("notifications"))}
@@ -791,14 +761,6 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
           <span>Notifications</span>
         </div>
       )}
-
-      <div
-        className={getLinkClass(pathname.includes("/profile"))}
-        onClick={() => handleNav("/profile")}
-      >
-        <FiUser size={16} />
-        <span>Profile</span>
-      </div>
 
       {sidebarItems.some((item) => item.key === "settings") && (
         <div
@@ -810,16 +772,14 @@ function DashboardSidebar({ onNavigate, collapsed = false, compact = false }) {
         </div>
       )}
 
-      {!collapsed && !compact && (
-        <div
-          className="sidebar-resize-handle"
-          onMouseDown={(event) => {
-            event.preventDefault();
-            resizingRef.current = true;
-            document.body.classList.add("sidebar-resizing");
-          }}
-        />
-      )}
+      <div
+        className="sidebar-resize-handle"
+        onMouseDown={(event) => {
+          event.preventDefault();
+          resizingRef.current = true;
+          document.body.classList.add("sidebar-resizing");
+        }}
+      />
     </div>
   );
 }

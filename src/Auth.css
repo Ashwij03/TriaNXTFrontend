@@ -31,16 +31,16 @@ body {
   z-index: 2;
   width: 100%;
   max-width: 520px;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: var(--tnxt-radius-xl);
-  padding: 32px;
-  box-shadow: var(--tnxt-shadow-lg);
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(6px);
 }
 
 /* LOGO — text-only (no warning icon) */
 .auth-text-logo {
-  color: var(--tnxt-navy);
+  color: #082c3c;
   cursor: pointer;
   display: block;
   font-size: 32px;

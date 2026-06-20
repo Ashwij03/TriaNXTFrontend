@@ -1,11 +1,12 @@
 :root {
-  --primary: var(--tnxt-primary);
-  --sidebar: var(--tnxt-navy);
-  --background: var(--tnxt-bg);
-  --card-bg: var(--tnxt-card);
-  --text: var(--tnxt-text);
-  --border: var(--tnxt-border);
-  --dashboard-ui-scale: 1;
+
+  --primary: #0b5ed7;
+  --sidebar: #001f54;
+  --background: #f5f7fb;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --border: #e5e7eb;
+  --dashboard-ui-scale: 0.82;
 }
 
 .dashboard-page {
@@ -14,7 +15,8 @@
 }
 
 .dashboard-section {
-  margin-bottom: var(--tnxt-space-2xl);
+
+  margin-bottom: calc(24px * var(--dashboard-ui-scale, 1));
 }
 
 .dashboard-grid-6 {
@@ -62,18 +64,20 @@
 }
 
 .visit-item,
+.comment-item,
+.comment-item,
 .comment-item {
-  padding: var(--tnxt-space-md);
-  border: 1px solid var(--tnxt-border);
-  border-radius: var(--tnxt-radius-md);
-  margin-bottom: var(--tnxt-space-md);
-  background: var(--tnxt-bg-alt);
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #f8fafc;
 }
 
 .visit-item-empty {
   margin: 0;
-  color: var(--tnxt-text-secondary);
-  font-size: var(--tnxt-font-size-sm);
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .quick-grid {

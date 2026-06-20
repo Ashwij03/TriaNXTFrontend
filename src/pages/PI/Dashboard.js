@@ -1,7 +1,6 @@
 // UPDATED: PI dashboard wired to adminService dynamic data
 
 import DashboardLayout from "../../Components/dashboard/DashboardLayout";
-import KPICard from "../../Components/dashboard/KPICard";
 import DashboardCard from "../../Components/dashboard/DashboardCard";
 import DataTable from "../../Components/dashboard/DataTable";
 import AlertsPanel from "../../Components/dashboard/AlertsPanel";

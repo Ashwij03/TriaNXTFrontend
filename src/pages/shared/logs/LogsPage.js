@@ -17,7 +17,7 @@ function LogsPage() {
 
   return (
     <DashboardLayout>
-      <div className="admin-page audit-logs-page">
+      <div className="admin-page">
         <div className="admin-page-title">
           <h1>Logs</h1>
           <p>

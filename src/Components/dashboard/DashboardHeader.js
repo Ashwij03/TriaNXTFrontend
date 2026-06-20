@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardHeader.css";
 import SearchableDropdown from "../common/SearchableDropdown";
@@ -8,11 +8,7 @@ import {
   FiBell,
   FiChevronDown,
   FiMenu,
-  FiSliders,
-  FiSearch,
-  FiHelpCircle,
-  FiSettings,
-  FiZap
+  FiSliders
 } from "react-icons/fi";
 import { getNotifications } from "../../services/adminService";
 import { getStudyByCode } from "../../services/studyService";
@@ -68,7 +64,6 @@ import {
   getStudyOptions,
   getSubjectOptions
 } from "../../services/filterService";
-import { searchHeader } from "../../utils/searchService";
 
 const FILTER_ORDERS = {
   [ROLES.SPONSOR]: [
@@ -118,26 +113,14 @@ const ROLE_BADGE_CLASSES = {
   [ROLES.SPONSOR]: "role-badge--sponsor"
 };
 
-const QUICK_ACTIONS = [
-  { label: "Studies", path: "/studies" },
-  { label: "Subjects", path: "/subjects" },
-  { label: "Reports", path: "/reports" },
-  { label: "User Management", path: "/user-management" },
-  { label: "Access Permission", path: "/access-permission" }
-];
-
 function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
   const navigate = useNavigate();
-  const searchRef = useRef(null);
   const currentUser = getCurrentUser();
   const userIsAdmin = isAdmin(currentUser);
   const effectiveRole = getEffectiveRole(currentUser) || ROLES.ADMIN;
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [filterVersion, setFilterVersion] = useState(0);
   const [previewRole, setPreviewRoleState] = useState(
     () => effectiveRole || ROLES.ADMIN
@@ -195,30 +178,6 @@ function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
     return getSubjectOptions(currentUser);
   }, [currentUser, filterVersion]);
   const roleOptions = useMemo(() => getAllRoles(), []);
-
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return [];
-    }
-
-    return searchHeader(searchQuery, {
-      institutionFilter: selectedInstitution
-    });
-  }, [searchQuery, selectedInstitution]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setSearchOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     touchUserSession(currentUser);
@@ -319,20 +278,6 @@ function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
     }
   };
 
-  const handleSearchSelect = (result) => {
-    setSearchQuery("");
-    setSearchOpen(false);
-
-    if (result.type === "study" && result.study) {
-      openStudy(result.study);
-      return;
-    }
-
-    if (result.type === "subject" && result.id) {
-      handleSubjectChange(result.id);
-    }
-  };
-
   const updateFilter = (key, value, setter) => {
     setter(value);
 
@@ -373,21 +318,14 @@ function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
     switch (filterKey) {
       case "role":
         return userIsAdmin ? (
-          <div className="header-role-control">
-            <SearchableDropdown
-              value={ROLES.ADMIN}
-              onChange={handleRoleChange}
-              options={roleOptions}
-              placeholder="Admin"
-              searchPlaceholder="Search Role"
-              className="header-dropdown header-dropdown--admin"
-            />
-            {previewRole !== ROLES.ADMIN && (
-              <span className="header-preview-indicator">
-                Viewing: {ROLE_LABELS[previewRole] || previewRole}
-              </span>
-            )}
-          </div>
+          <SearchableDropdown
+            value={previewRole}
+            onChange={handleRoleChange}
+            options={roleOptions}
+            placeholder="Select Role"
+            searchPlaceholder="Search Role"
+            className="header-dropdown"
+          />
         ) : (
           <span className="header-static-value">
             {ROLE_LABELS[currentUser?.role] || currentUser?.role || "—"}
@@ -491,8 +429,10 @@ function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
 
   const dashboardPath = getDashboardPath(effectiveRole);
   const badgeRole = userIsAdmin ? ROLES.ADMIN : currentUser?.role;
-  const badgeLabel = ROLE_LABELS[badgeRole] || badgeRole || "User";
-  const badgeClass = ROLE_BADGE_CLASSES[badgeRole] || "role-badge--default";
+  const badgeLabel =
+    ROLE_LABELS[badgeRole] || badgeRole || "User";
+  const badgeClass =
+    ROLE_BADGE_CLASSES[badgeRole] || "role-badge--default";
   const profileRoleLabel = userIsAdmin
     ? ROLE_LABELS[ROLES.ADMIN]
     : ROLE_LABELS[currentUser?.role] || currentUser?.role || "User";
@@ -535,124 +475,34 @@ function DashboardHeader({ onToggleSidebar, sidebarOpen }) {
               <div className="header-filter-heading">
                 {FILTER_LABELS[filterKey] || filterKey}
               </div>
-              <div className="header-filter-control">
-                {renderFilterControl(filterKey)}
-              </div>
+              <div className="header-filter-control">{renderFilterControl(filterKey)}</div>
             </div>
           ))}
         </div>
 
-        <div className="header-search-wrap" ref={searchRef}>
-          <FiSearch className="header-search-icon" />
-          <input
-            type="search"
-            className="header-search-input"
-            placeholder="Search anything..."
-            value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
-              setSearchOpen(true);
-            }}
-            onFocus={() => setSearchOpen(true)}
-            aria-label="Global search"
-          />
-          {searchOpen && searchResults.length > 0 && (
-            <div className="header-search-results">
-              {searchResults.map((result, index) => (
-                <button
-                  type="button"
-                  key={`${result.type}-${result.label}-${index}`}
-                  className="header-search-result"
-                  onClick={() => handleSearchSelect(result)}
-                >
-                  <span className="header-search-result-label">
-                    {result.label}
-                  </span>
-                  {result.meta && (
-                    <span className="header-search-result-meta">
-                      {result.meta}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
         <div className="header-right">
           <div className="header-menu">
-            <button
-              type="button"
-              className="header-action-btn header-action-btn--outline"
+            <span
               onClick={() => navigate(dashboardPath)}
+              style={{ cursor: "pointer" }}
             >
               <FiHome />
-              <span>Home</span>
-            </button>
+              Home
+            </span>
 
-            <button
-              type="button"
-              className="header-action-btn header-action-btn--outline"
-            >
+            <span style={{ cursor: "pointer" }}>
               <FiMessageSquare />
-              <span>Live Chat</span>
-            </button>
-
-            <div className="header-quick-actions-wrap">
-              <button
-                type="button"
-                className="header-action-btn header-action-btn--primary"
-                onClick={() => setQuickActionsOpen((prev) => !prev)}
-                aria-expanded={quickActionsOpen}
-              >
-                <FiZap />
-                <span>Quick Actions</span>
-              </button>
-              {quickActionsOpen && (
-                <div className="header-quick-actions-menu">
-                  {QUICK_ACTIONS.map((action) => (
-                    <button
-                      type="button"
-                      key={action.path}
-                      onClick={() => {
-                        setQuickActionsOpen(false);
-                        navigate(action.path);
-                      }}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+              Live Chat
+            </span>
 
             <span
-              className="notification-badge header-icon-btn"
+              className="notification-badge"
               onClick={() => navigate("/notifications")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  navigate("/notifications");
-                }
-              }}
+              style={{ cursor: "pointer" }}
             >
               <FiBell />
               {unreadNotifications > 0 && <small>{unreadNotifications}</small>}
             </span>
-
-            <button type="button" className="header-icon-btn" aria-label="Help">
-              <FiHelpCircle />
-            </button>
-
-            <button
-              type="button"
-              className="header-icon-btn"
-              aria-label="Settings"
-              onClick={() => navigate("/settings")}
-            >
-              <FiSettings />
-            </button>
           </div>
 
           <div
