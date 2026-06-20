@@ -2,10 +2,10 @@ import Navbar from "./Navbar";
 import "./Dashboard.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Comments from "./pages/operations/Comments";
-import ProgressNotes from "./pages/operations/ProgressNotes";
-import FileDetails from "./pages/documents/FileDetails";
-import StudyLogs from "./pages/operations/StudyLogs";
+import Comments from "./pages/shared/operations/Comments";
+import ProgressNotes from "./pages/shared/operations/ProgressNotes";
+import FileDetails from "./pages/shared/documents/FileDetails";
+import StudyLogs from "./pages/shared/operations/StudyLogs";
 function Dashboard() {
   const navigate = useNavigate();
   const [name, setName] = useState("Guest");

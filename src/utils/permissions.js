@@ -21,7 +21,9 @@ export const PERMISSIONS = {
 
   DOCUMENT_VIEW: "document.view",
 
-  QUERY_VIEW: "query.view",
-
-  QUERY_CREATE: "query.create"
+  COMMENT_VIEW: "comment.view",
+  COMMENT_CREATE: "comment.create",
+  // UPDATED: legacy keys retained for backward compatibility
+  QUERY_VIEW: "comment.view",
+  QUERY_CREATE: "comment.create"
 };
