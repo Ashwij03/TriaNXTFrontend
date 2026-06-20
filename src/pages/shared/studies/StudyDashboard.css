@@ -71,13 +71,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #082c3c 0%, #0d4158 100%);
-  border-radius: 16px;
+  background: var(--tnxt-sidebar-gradient);
+  border-radius: var(--tnxt-radius-lg);
   color: #ffffff;
   padding: 22px 24px;
   margin-bottom: 24px;
   gap: 16px;
-  box-shadow: 0 12px 28px rgba(8, 44, 60, 0.16);
+  box-shadow: var(--tnxt-shadow);
+}
 }
 
 .study-dashboard-page .page-header h1 {

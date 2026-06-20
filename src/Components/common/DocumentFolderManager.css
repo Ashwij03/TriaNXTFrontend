@@ -17,7 +17,58 @@
 
 .dfm-container:not(.dfm-layout-vertical) {
   display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(220px, 300px);
+  gap: var(--tnxt-space-lg);
+  min-height: 520px;
+}
+
+.dfm-doc-panel {
+  background: var(--tnxt-card);
+  border: 1px solid var(--tnxt-border);
+  border-radius: var(--tnxt-radius-lg);
+  box-shadow: var(--tnxt-shadow-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dfm-doc-comments {
+  border-left: 1px solid var(--tnxt-border);
+  border-top: none;
+  max-height: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--tnxt-space-lg);
+  background: var(--tnxt-bg-alt);
+}
+
+.dfm-upload-dropzone {
+  align-items: center;
+  background: var(--tnxt-bg-alt);
+  border: 2px dashed var(--tnxt-border);
+  border-radius: var(--tnxt-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tnxt-space-md);
+  justify-content: center;
+  min-height: 200px;
+  padding: var(--tnxt-space-2xl);
+  text-align: center;
+}
+
+.dfm-upload-progress {
+  background: var(--tnxt-primary-light);
+  border-radius: var(--tnxt-radius-full);
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.dfm-upload-progress-bar {
+  background: var(--tnxt-primary);
+  height: 100%;
+  transition: width 0.3s ease;
 }
 
 .dfm-sidebar {
